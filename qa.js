@@ -28,7 +28,7 @@ const docsFromYTVideo = async (video) => {
   // the whole youtube transcript wouldn't fit in a prompt (tokens limit)
   // we want to split up the transcript into smaller chunks
   // when we do the search we only pick the chunk that has the information needed to answer the question
-  // (closest chunk - cosine similarity) and we sent it to the prompt with the query
+  // (closest chunk - cosine similarity) and we sent it to the prompt with the question
   return splitter.splitDocuments(doc);
 };
 
@@ -55,7 +55,28 @@ const loadStore = async () => {
 const query = async () => {
   const store = await loadStore();
   const results = await store.similaritySearch(question, 2);
-  console.log(results);
+  const response = await openai.chat.completions.create({
+    model: "gpt-4o",
+    temperature: 0, // you almmost always want determinism for document qa
+    messages: [
+      {
+        role: "system",
+        content:
+          "You are a helpful AI assistant. Answer questions to your best ability.",
+      },
+      {
+        role: "user",
+        content: `Answer the following question using the provided context.
+        If you cannot answer the question with the context, don't lie and make up stuff.
+        Just say you need more context.
+
+        Question: ${question}
+
+        Context: ${results.map((r) => r.pageContent).join("\n")}`,
+      },
+    ],
+  });
+  console.log(response);
 };
 
 query();
