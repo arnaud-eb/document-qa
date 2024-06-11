@@ -1,5 +1,4 @@
 import { openai } from "./openai.js";
-import { Document } from "langchain/document";
 import { MemoryVectorStore } from "langchain/vectorstores/memory";
 import { OpenAIEmbeddings } from "@langchain/openai";
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
@@ -76,7 +75,12 @@ const query = async () => {
       },
     ],
   });
-  console.log(response);
+
+  console.log(
+    `Answer: ${response.choices[0].message.content}\nSources:${results
+      .map(({ metadata }) => metadata.source)
+      .join(", ")}`
+  );
 };
 
 query();
